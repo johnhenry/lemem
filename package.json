@@ -1,6 +1,6 @@
 {
   "name": "@johnhenry/packfile",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "main": "index.mjs",
   "types": "./types.d.ts",
@@ -24,6 +24,7 @@
   },
   "scripts": {
     "test": "node --test test.mjs",
+    "typecheck": "tsc --project test/types-fixture/tsconfig.json",
     "demo:compile": "node demo/compile.mjs",
     "demo:server": "node demo/server.mjs",
     "demo:browser": "npx serve ."
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "theres-waldo": "^0.0.0",
+    "typescript": "^7.0.2",
     "wbn-sign": "^0.3.1"
   },
   "exports": {
@@ -45,21 +47,29 @@
       "types": "./types.d.ts",
       "default": "./index.mjs"
     },
-    "./browser": "./browser.mjs",
+    "./browser": {
+      "types": "./browser.d.ts",
+      "default": "./browser.mjs"
+    },
     "./compat": "./compat.mjs",
     "./cache": "./cache.mjs",
     "./hash": "./lib/hash.mjs",
     "./compression": "./lib/compression.mjs",
-    "./blob-preview": "./lib/blob-preview.mjs",
+    "./blob-preview": {
+      "types": "./blob-preview.d.ts",
+      "default": "./lib/blob-preview.mjs"
+    },
     "./web-bundle": "./lib/web-bundle.mjs"
   },
   "files": [
     "index.mjs",
     "browser.mjs",
+    "browser.d.ts",
     "compat.mjs",
     "cache.mjs",
     "packfile.mjs",
     "lib/",
+    "blob-preview.d.ts",
     "types.d.ts",
     "types.ts",
     "README.md",
