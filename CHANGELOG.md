@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it reaches 1.0.0.
 
+## [Unreleased]
+
+### Fixed
+
+- **CI never actually ran `typecheck`.** The #5 fix added a `typecheck`
+  script (`tsc --project test/types-fixture/tsconfig.json`) but never wired
+  it into either `ci.yml` or `publish.yml` -- a regression in the type
+  declarations added by that fix could have shipped undetected. Both
+  workflows now run it alongside `npm test`.
+- **`publish.yml` had no redundant `push: tags` trigger**, unlike every
+  sibling package in this family -- a release created very soon after a
+  push/merge to the same commit can silently drop the `release` event (see
+  `@johnhenry/fileable`'s `publish.yml` for the full incident writeup).
+  Added the same tag-push fallback, safe to double-fire thanks to the
+  existing `npm view` idempotency guard.
+- Also discovered while wiring up a first-ever npm publish for this
+  package: it had never actually been registered in the family's
+  npm-tokens request registry, so its `NPM_TOKEN` secret had no
+  permission for the scoped package name at all (a real `E404` on
+  publish). Unrelated to the code in this repo -- tracked and fixed in
+  the ecosystem notebook, not here.
+
 ## [0.0.1] - 2026-09-26
 
 ### Fixed
