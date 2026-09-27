@@ -197,7 +197,7 @@ Uses SHA-256 hashing (same as file ETags) for consistent cache keys.
 import { fromArchive, toArchive, createRouter } from '@johnhenry/packfile/browser';
 ```
 
-The browser bundle provides `fromArchive`, `toArchive`, and `createRouter`, using the `wbn` package directly (no Node APIs required) and Web Crypto for hashing -- same wire format as the Node entrypoint, so an archive built by one is directly readable by the other.
+The browser bundle provides `fromArchive`, `toArchive`, and `createRouter`, using the `wbn` package directly (no Node APIs required) and Web Crypto for hashing -- same wire format as the Node entrypoint, so an archive built by one is directly readable by the other. **`toArchive()` here returns an `ArrayBuffer`, not the `Buffer` the Node `.` entry's `toArchive()` returns** (or a `Uint8Array` when called with `{ compressed: false }`) -- there is no `Buffer` in a browser. Types for this subpath are declared in `browser.d.ts` (see `./browser`'s `types` condition in `package.json`).
 
 ```js
 const archive = await fetch('/app.wbn').then(r => r.arrayBuffer());
@@ -404,6 +404,15 @@ import { compressObject, deCompressObject } from '@johnhenry/packfile/compressio
 | `./compat` | `compat.mjs` | `compileDirectory`, `decompileDirectory` |
 | `./blob-preview` | `lib/blob-preview.mjs` | `createBlobPreview` — host a `FilesMap` client-side via `blob:` URLs, no server |
 | `./web-bundle` | `lib/web-bundle.mjs` | Lower-level Web Bundle primitives: `toWebBundle`, `fromWebBundle`, `createWebBundleRouter` — the engine `toArchive`/`fromArchive` are built on, with a real `baseURL`/headers/IWA-signing exposed |
+
+TypeScript types: `.`, `./browser`, and `./blob-preview` each have a `types`
+condition and a real `.d.ts` file (`types.d.ts`, `browser.d.ts`,
+`blob-preview.d.ts`). The remaining subpaths (`./compat`, `./cache`,
+`./hash`, `./compression`, `./web-bundle`) do not yet -- importing from one
+of those in TypeScript will type-check as `any`, not a compile error, but
+also not real type safety. (`./browser` and `./blob-preview` were fixed in
+[#5](https://github.com/johnhenry/packfile/issues/5); the others are open,
+unfixed instances of the same gap.)
 
 ## Security model
 

@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it reaches 1.0.0.
 
+## [0.0.1] - 2026-09-26
+
+### Fixed
+
+- **`./browser` and `./blob-preview` had no `types` condition in `exports`
+  and no `.d.ts` file on disk at all** ([#5](https://github.com/johnhenry/packfile/issues/5)),
+  so `import { toArchive, fromArchive, createRouter } from
+  '@johnhenry/packfile/browser'` (and the `./blob-preview` equivalent) was
+  untyped -- TS7016, "implicitly has an 'any' type" -- under any resolver
+  that actually consults the `exports` map (`moduleResolution: "nodenext"`/
+  `"bundler"`; the repo's own `tsconfig.json` uses the older `"node"`
+  resolution, which doesn't consult `exports` at all and so never surfaced
+  this). Added `browser.d.ts` and `blob-preview.d.ts`, declaring each
+  subpath's *actual* runtime exports rather than reusing the Node `.`
+  entry's types wholesale, because they're not identical:
+  `createRouter` is the literal same implementation across `.` and
+  `./browser` (both import `lib/create-router.mjs`), but `./browser`'s
+  `toArchive()`/`fromArchive()` are a separate implementation from the
+  Node entry's, with real divergences -- most notably, `toArchive()`
+  returns an `ArrayBuffer` (or a `Uint8Array` when called with
+  `{ compressed: false }`), never the `Buffer` the Node entry's
+  `toArchive()` always returns, and the options key is `compressed`, not
+  `compress`. `blob-preview.d.ts` duplicates (rather than imports)
+  `@johnhenry/andbox`'s `VirtualModuleRegistry` interface, since that
+  package has the same missing-`types`-condition problem this fix
+  addresses here -- importing its type would have just traded one
+  unresolvable type for another. A regression fixture
+  (`test/types-fixture/`, run via the new `npm run typecheck`) imports
+  both subpaths by their published package name and type-checks under
+  `moduleResolution: "nodenext"`, confirmed to fail with TS7016 before
+  this fix and pass after.
+- Documented in the README (`## Browser Usage`, `## Exports`) that
+  `./browser`'s `toArchive()` returns an `ArrayBuffer`/`Uint8Array`, not a
+  `Buffer`, and that `./compat`, `./cache`, `./hash`, `./compression`, and
+  `./web-bundle` remain unfixed instances of the same missing-`types`-
+  condition gap.
+
 ## [0.0.0] - 2026-09-22
 
 ### Changed (breaking)
